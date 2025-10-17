@@ -1,9 +1,8 @@
 // File: lib/xlsxProcessor.ts
 
 import * as XLSX from 'xlsx';
-import { supabase } from './supabaseClient'; // Menggunakan klien Supabase dari file sebelumnya
+import { supabase } from './supabaseClient';
 
-// Mendefinisikan tipe data untuk baris PTK agar kode lebih aman
 type PtkRow = {
   nama: string | null;
   nik: string | null;
@@ -21,11 +20,6 @@ type PtkRow = {
   jabatan_kepsek: boolean;
 };
 
-/**
- * Fungsi untuk menangani unggahan file, memproses data, dan menyimpannya ke Supabase.
- * @param {File} file - File XLSX yang diunggah oleh pengguna.
- * @param {'replace' | 'append'} uploadOption - Opsi untuk mengganti data lama atau menambahkan data baru.
- */
 export async function processAndUploadXLSX(file: File, uploadOption: 'replace' | 'append'): Promise<void> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -41,26 +35,28 @@ export async function processAndUploadXLSX(file: File, uploadOption: 'replace' |
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         
-        const jsonRawData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        // PERUBAHAN 1: Mengganti `any[][]` menjadi `unknown[][]` yang lebih aman
+        const jsonRawData: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as unknown[][];
 
-        const headers: string[] = jsonRawData[0];
+        // Kita harus memastikan tipe data header adalah string
+        const headers: string[] = jsonRawData[0] as string[];
         const rows = jsonRawData.slice(1);
 
-        const cleanData: PtkRow[] = rows.map(row => {
+        const cleanData: PtkRow[] = rows.map((row: unknown[]) => { // Menambahkan tipe pada parameter `row`
           const mappedRow: PtkRow = {
-            nama: row[headers.indexOf('Nama')] || null,
-            nik: row[headers.indexOf('NIK')] || null,
-            nuptk: row[headers.indexOf('NUPTK')] || null,
-            nip: row[headers.indexOf('NIP')] || null,
-            status_kepegawaian: row[headers.indexOf('Status Kepegawaian')] || null,
-            pangkat_gol: row[headers.indexOf('Pangkat/Gol')] || null,
-            jenis_ptk: row[headers.indexOf('Jenis PTK')] || null,
-            jabatan_ptk: row[headers.indexOf('Jabatan PTK')] || null,
-            pendidikan: row[headers.indexOf('Pendidikan')] || null,
-            bidang_studi_sertifikasi: row[headers.indexOf('Bidang Studi Sertifikasi')] || null,
-            tempat_tugas: row[headers.indexOf('Tempat Tugas')] || null,
-            npsn: row[headers.indexOf('NPSN')] || null,
-            kecamatan: row[headers.indexOf('Kecamatan')] || null,
+            nama: (row[headers.indexOf('Nama')] as string) || null,
+            nik: (row[headers.indexOf('NIK')] as string) || null,
+            nuptk: (row[headers.indexOf('NUPTK')] as string) || null,
+            nip: (row[headers.indexOf('NIP')] as string) || null,
+            status_kepegawaian: (row[headers.indexOf('Status Kepegawaian')] as string) || null,
+            pangkat_gol: (row[headers.indexOf('Pangkat/Gol')] as string) || null,
+            jenis_ptk: (row[headers.indexOf('Jenis PTK')] as string) || null,
+            jabatan_ptk: (row[headers.indexOf('Jabatan PTK')] as string) || null,
+            pendidikan: (row[headers.indexOf('Pendidikan')] as string) || null,
+            bidang_studi_sertifikasi: (row[headers.indexOf('Bidang Studi Sertifikasi')] as string) || null,
+            tempat_tugas: (row[headers.indexOf('Tempat Tugas')] as string) || null,
+            npsn: (row[headers.indexOf('NPSN')] as string) || null,
+            kecamatan: (row[headers.indexOf('Kecamatan')] as string) || null,
             jabatan_kepsek: (row[headers.indexOf('Jabatan Kepsek')] === 'Ya')
           };
           return mappedRow;
@@ -82,9 +78,14 @@ export async function processAndUploadXLSX(file: File, uploadOption: 'replace' |
 
         resolve();
 
-      } catch (error: any) {
+      } catch (error: unknown) { // PERUBAHAN 2: Mengganti `error: any` menjadi `error: unknown`
         console.error('Terjadi kesalahan saat memproses file:', error);
-        reject(new Error(error.message || "Terjadi kesalahan yang tidak diketahui."));
+        // Menangani error dengan aman
+        let message = "Terjadi kesalahan yang tidak diketahui.";
+        if (error instanceof Error) {
+            message = error.message;
+        }
+        reject(new Error(message));
       }
     };
 
