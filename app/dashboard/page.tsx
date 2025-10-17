@@ -1,7 +1,7 @@
 // File: src/app/dashboard/page.tsx
 
-import { supabase } from '../../lib/supabaseClient';
-import DashboardClient from '../../components/DashboardClient';
+import { supabase } from '@/lib/supabaseClient';
+import DashboardClient from '@/components/DashboardClient';
 import Link from 'next/link';
 
 const ITEMS_PER_PAGE = 10; // Menetapkan jumlah data per halaman
