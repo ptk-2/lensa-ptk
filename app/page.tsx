@@ -1,9 +1,9 @@
-// File: src/app/page.tsx
+// File: app/page.tsx
 
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { processAndUploadXLSX } from '@/lib/xlsxProcessor';
+import { processAndUploadXLSX } from '@/lib/xlsxProcessor'; // Menggunakan path alias yang benar
 import Link from 'next/link';
 import { UploadCloud, FileCheck, AlertTriangle, Loader } from 'lucide-react';
 
@@ -38,8 +38,7 @@ export default function HomePage() {
       await processAndUploadXLSX(file, uploadOption);
       setStatusMessage(`Berhasil! ${file.name} telah diunggah.`);
       setFile(null);
-    } catch (error: unknown) { // <-- PERUBAHAN DI SINI, dari 'any' ke 'unknown'
-      // Logika untuk menangani error 'unknown' dengan aman
+    } catch (error: unknown) { // Perbaikan untuk linting error (mengganti 'any' dengan 'unknown')
       let message = "Terjadi kesalahan yang tidak diketahui.";
       if (error instanceof Error) {
         message = error.message;
