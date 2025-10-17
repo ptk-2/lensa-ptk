@@ -1,103 +1,120 @@
-import Image from "next/image";
+// File: src/app/page.tsx
 
-export default function Home() {
+"use client";
+
+import { useState, ChangeEvent, FormEvent } from 'react';
+import { processAndUploadXLSX } from '../../lib/xlsxProcessor';
+import Link from 'next/link';
+import { UploadCloud, FileCheck, AlertTriangle, Loader } from 'lucide-react'; // We will install lucide-react
+
+export default function HomePage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [isError, setIsError] = useState<boolean>(false);
+  const [uploadOption, setUploadOption] = useState<'replace' | 'append'>('replace');
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+      setStatusMessage('');
+      setIsError(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!file) {
+      setStatusMessage('Silakan pilih file terlebih dahulu.');
+      setIsError(true);
+      return;
+    }
+
+    setLoading(true);
+    setStatusMessage('Memproses file...');
+    setIsError(false);
+
+    try {
+      await processAndUploadXLSX(file, uploadOption);
+      setStatusMessage(`Berhasil! ${file.name} telah diunggah.`);
+      setFile(null);
+    } catch (error: any) {
+      setStatusMessage(`Gagal: ${error.message}`);
+      setIsError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 transition-all duration-500">
+      <div className="w-full max-w-2xl text-center">
+        {/* Header */}
+        <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
+          Lensa PTK
+        </h1>
+        <p className="mt-2 text-lg text-gray-300">
+          Visualisasikan Data Kepegawaian Anda dengan Tampilan Futuristik
+        </p>
+        
+        <Link href="/dashboard" className="mt-4 inline-block text-cyan-400 hover:text-cyan-300 transition-colors duration-300">
+            Buka Dashboard →
+        </Link>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Form Unggah with Glassmorphism Effect */}
+        <form onSubmit={handleSubmit} className="mt-8 w-full rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="mb-6">
+            <div className="relative mt-2 flex justify-center rounded-lg border-2 border-dashed border-gray-500/50 px-6 py-10 hover:border-cyan-400 transition-colors duration-300">
+              <div className="text-center">
+                <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="mt-4 flex text-sm leading-6 text-gray-400">
+                  <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-semibold text-cyan-400 focus-within:outline-none hover:text-cyan-300">
+                    <span>Unggah file</span>
+                    <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".xlsx" onChange={handleFileChange} />
+                  </label>
+                  <p className="pl-1">atau seret dan letakkan</p>
+                </div>
+                {file && <p className="text-sm text-gray-300 mt-2 font-medium">{file.name}</p>}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+             <fieldset>
+                <div className="flex items-center justify-center gap-x-6">
+                    <label className="flex items-center gap-x-2 cursor-pointer">
+                        <input type="radio" value="replace" checked={uploadOption === 'replace'} onChange={() => setUploadOption('replace')} className="radio radio-primary"/>
+                        <span className="text-sm font-medium text-gray-300">Ganti Data</span>
+                    </label>
+                    <label className="flex items-center gap-x-2 cursor-pointer">
+                        <input type="radio" value="append" checked={uploadOption === 'append'} onChange={() => setUploadOption('append')} className="radio radio-primary"/>
+                        <span className="text-sm font-medium text-gray-300">Tambahkan Data</span>
+                    </label>
+                </div>
+            </fieldset>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading || !file}
+            className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300 transform hover:scale-105"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            {loading ? (
+                <Loader className="animate-spin inline-block mr-2" />
+            ) : (
+                <UploadCloud className="inline-block mr-2 h-4 w-4" />
+            )}
+            {loading ? 'Memproses...' : 'Unggah dan Proses'}
+          </button>
+
+          {statusMessage && (
+            <div className={`mt-4 flex items-center justify-center gap-2 text-sm ${isError ? 'text-red-400' : 'text-green-400'}`}>
+              {isError ? <AlertTriangle size={16} /> : <FileCheck size={16} />}
+              <span>{statusMessage}</span>
+            </div>
+          )}
+        </form>
+      </div>
+    </main>
   );
 }
