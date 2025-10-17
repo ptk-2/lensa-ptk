@@ -5,7 +5,7 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { processAndUploadXLSX } from '../../lib/xlsxProcessor';
 import Link from 'next/link';
-import { UploadCloud, FileCheck, AlertTriangle, Loader } from 'lucide-react'; // We will install lucide-react
+import { UploadCloud, FileCheck, AlertTriangle, Loader } from 'lucide-react';
 
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
@@ -38,8 +38,13 @@ export default function HomePage() {
       await processAndUploadXLSX(file, uploadOption);
       setStatusMessage(`Berhasil! ${file.name} telah diunggah.`);
       setFile(null);
-    } catch (error: any) {
-      setStatusMessage(`Gagal: ${error.message}`);
+    } catch (error: unknown) { // <-- PERUBAHAN DI SINI, dari 'any' ke 'unknown'
+      // Logika untuk menangani error 'unknown' dengan aman
+      let message = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      setStatusMessage(`Gagal: ${message}`);
       setIsError(true);
     } finally {
       setLoading(false);
