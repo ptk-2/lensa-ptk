@@ -22,20 +22,17 @@ type StatsData = {
 
 // Tipe data untuk tabel (semua kolom)
 type TableData = {
-  [key: string]: any; // Fleksibel untuk semua kolom
+  [key: string]: unknown; // Menggunakan 'unknown' untuk keamanan tipe
 };
 
-interface DashboardClientProps {
-  statsData: StatsData[];
-  tableData: TableData[];
-  kecamatanOptions: string[];
-  totalPages: number;
+// PERBAIKAN 1: Mendefinisikan tipe untuk props Tooltip
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
 }
 
-// Komponen dan Fungsi lainnya...
-const PIE_CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#ec4899", "#f59e0b", "#3b82f6"];
-
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => { // Menggunakan tipe yang sudah didefinisikan
   if (active && payload && payload.length) {
     return (
       <div className="p-3 rounded-lg border border-white/10 bg-gray-900/50 backdrop-blur-xl">
@@ -47,6 +44,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+
+interface DashboardClientProps {
+  statsData: StatsData[];
+  tableData: TableData[];
+  kecamatanOptions: string[];
+  totalPages: number;
+}
+
+
 export default function DashboardClient({ statsData, tableData, kecamatanOptions, totalPages }: DashboardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,14 +61,14 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const currentPage = useMemo(() => parseInt(searchParams.get('page') || '1'), [searchParams]);
 
-  // Efek untuk memperbarui URL saat filter atau pencarian berubah
+  // PERBAIKAN 2: Menambahkan 'searchParams' ke dalam dependency array
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('kecamatan', selectedKecamatan);
     params.set('search', searchTerm);
-    params.set('page', '1'); // Selalu reset ke halaman 1 saat filter berubah
+    params.set('page', '1'); 
     router.push(`/dashboard?${params.toString()}`);
-  }, [selectedKecamatan, searchTerm, router]);
+  }, [selectedKecamatan, searchTerm, router, searchParams]); // <-- searchParams ditambahkan di sini
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -132,7 +138,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
 
       {/* Kartu Metrik */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-         {/* ... (kode kartu metrik tetap sama) ... */}
          <MetricCard icon={<Users size={48} />} title="Total PTK (Filter)" value={totalPtk} color="text-fuchsia-400" />
          <MetricCard icon={<UserCheck size={48} />} title="Total PNS" value={totalPns} color="text-cyan-400" />
          <MetricCard icon={<UserPlus size={48} />} title="Total PPPK" value={totalPppk} color="text-green-400" />
@@ -141,7 +146,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
 
       {/* Area Grafik */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-        {/* ... (kode area grafik tetap sama) ... */}
         <div className="lg:col-span-3 p-6 rounded-xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
           <h3 className="text-xl font-semibold text-white mb-4">Distribusi Status Kepegawaian</h3>
           <div style={{ width: '100%', height: 400 }}>
