@@ -1,4 +1,4 @@
-// File: src/components/DashboardClient.tsx
+// File: components/DashboardClient.tsx
 
 "use client";
 
@@ -25,10 +25,7 @@ type TableData = {
   [key: string]: unknown; // Menggunakan 'unknown' untuk keamanan tipe
 };
 
-// =====================================================================
-// PERBAIKAN: Variabel yang hilang sekarang ditambahkan kembali di sini
 const PIE_CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#ec4899", "#f59e0b", "#3b82f6"];
-// =====================================================================
 
 // Mendefinisikan tipe untuk props Tooltip
 interface CustomTooltipProps {
@@ -48,7 +45,6 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   }
   return null;
 };
-
 
 interface DashboardClientProps {
   statsData: StatsData[];
