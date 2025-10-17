@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { processAndUploadXLSX } from '../../lib/xlsxProcessor';
+import { processAndUploadXLSX } from '../lib/xlsxProcessor';
 import Link from 'next/link';
 import { UploadCloud, FileCheck, AlertTriangle, Loader } from 'lucide-react';
 
