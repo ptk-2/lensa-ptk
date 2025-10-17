@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Import React
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   BarChart, Bar, PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, CartesianGrid, XAxis, YAxis 
@@ -22,12 +22,11 @@ type StatsData = {
 
 // Tipe data untuk tabel (semua kolom)
 type TableData = {
-  [key: string]: unknown; // Menggunakan 'unknown' untuk keamanan tipe
+  [key: string]: unknown;
 };
 
 const PIE_CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#ec4899", "#f59e0b", "#3b82f6"];
 
-// Mendefinisikan tipe untuk props Tooltip
 interface CustomTooltipProps {
   active?: boolean;
   payload?: { value: number }[];
@@ -76,20 +75,22 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
     router.push(`/dashboard?${params.toString()}`);
   }
 
-  // --- Proses Data untuk Grafik ---
-  const statusCounts = statsData.reduce((acc, ptk) => {
+  // --- Proses Data ---
+  const statusCounts = useMemo(() => statsData.reduce((acc, ptk) => {
     const status = ptk.status_kepegawaian || 'Lainnya';
     acc[status] = (acc[status] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
-  const barChartData = Object.keys(statusCounts).map(name => ({ name, Jumlah: statusCounts[name] })).sort((a, b) => b.Jumlah - a.Jumlah);
+  }, {} as Record<string, number>), [statsData]);
+
+  const barChartData = useMemo(() => Object.keys(statusCounts).map(name => ({ name, Jumlah: statusCounts[name] })).sort((a, b) => b.Jumlah - a.Jumlah), [statusCounts]);
   
-  const pendidikanCounts = statsData.reduce((acc, ptk) => {
+  const pendidikanCounts = useMemo(() => statsData.reduce((acc, ptk) => {
     const edu = ptk.pendidikan || 'Tidak Terdefinisi';
     acc[edu] = (acc[edu] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
-  const pieChartData = Object.keys(pendidikanCounts).map(name => ({ name, value: pendidikanCounts[name] })).sort((a,b) => b.value - a.value);
+  }, {} as Record<string, number>), [statsData]);
+
+  const pieChartData = useMemo(() => Object.keys(pendidikanCounts).map(name => ({ name, value: pendidikanCounts[name] })).sort((a,b) => b.value - a.value), [pendidikanCounts]);
 
   const totalPtk = statsData.length;
   const totalPns = statusCounts['PNS'] || 0;
@@ -114,7 +115,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
 
   return (
     <div className="p-4 md:p-8">
-      {/* Header dan Filter */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
           Dashboard PTK
@@ -136,7 +136,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
         </div>
       </div>
 
-      {/* Kartu Metrik */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
          <MetricCard icon={<Users size={48} />} title="Total PTK (Filter)" value={totalPtk} color="text-fuchsia-400" />
          <MetricCard icon={<UserCheck size={48} />} title="Total PNS" value={totalPns} color="text-cyan-400" />
@@ -144,7 +143,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
          <MetricCard icon={<GraduationCap size={48} />} title="Pendidikan S1" value={pendidikanCounts['S1'] || 0} color="text-amber-400" />
       </div>
 
-      {/* Area Grafik */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
         <div className="lg:col-span-3 p-6 rounded-xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
           <h3 className="text-xl font-semibold text-white mb-4">Distribusi Status Kepegawaian</h3>
@@ -180,7 +178,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
         </div>
       </div>
 
-      {/* Tabel Data PTK */}
       <div className="p-6 rounded-xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-white">Data Detail PTK</h3>
@@ -211,7 +208,10 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
               {table.getRowModel().rows.map(row => (
                 <tr key={row.id} className="border-b border-white/10 hover:bg-white/5">
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="p-4 text-gray-200">{flexRender(cell.column.columnDef.cell, cell.getContext()) as React.ReactNode}</td>
+                    <td key={cell.id} className="p-4 text-gray-200">
+                      {/* INILAH PERBAIKAN UTAMANYA */}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext()) as React.ReactNode}
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -219,7 +219,6 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
           </table>
         </div>
         
-        {/* Paginasi */}
         <div className="flex items-center justify-end gap-4 mt-4 text-sm">
           <span>Halaman {currentPage} dari {totalPages}</span>
           <div className="flex items-center gap-2">
