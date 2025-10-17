@@ -1,7 +1,7 @@
 // File: lib/xlsxProcessor.ts
 
 import * as XLSX from 'xlsx';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from './supabaseClient';
 
 type PtkRow = {
   nama: string | null;
