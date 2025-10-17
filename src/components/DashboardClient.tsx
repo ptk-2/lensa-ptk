@@ -25,14 +25,19 @@ type TableData = {
   [key: string]: unknown; // Menggunakan 'unknown' untuk keamanan tipe
 };
 
-// PERBAIKAN 1: Mendefinisikan tipe untuk props Tooltip
+// =====================================================================
+// PERBAIKAN: Variabel yang hilang sekarang ditambahkan kembali di sini
+const PIE_CHART_COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#ec4899", "#f59e0b", "#3b82f6"];
+// =====================================================================
+
+// Mendefinisikan tipe untuk props Tooltip
 interface CustomTooltipProps {
   active?: boolean;
   payload?: { value: number }[];
   label?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => { // Menggunakan tipe yang sudah didefinisikan
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="p-3 rounded-lg border border-white/10 bg-gray-900/50 backdrop-blur-xl">
@@ -61,14 +66,13 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const currentPage = useMemo(() => parseInt(searchParams.get('page') || '1'), [searchParams]);
 
-  // PERBAIKAN 2: Menambahkan 'searchParams' ke dalam dependency array
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('kecamatan', selectedKecamatan);
     params.set('search', searchTerm);
     params.set('page', '1'); 
     router.push(`/dashboard?${params.toString()}`);
-  }, [selectedKecamatan, searchTerm, router, searchParams]); // <-- searchParams ditambahkan di sini
+  }, [selectedKecamatan, searchTerm, router, searchParams]);
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -211,7 +215,7 @@ export default function DashboardClient({ statsData, tableData, kecamatanOptions
               {table.getRowModel().rows.map(row => (
                 <tr key={row.id} className="border-b border-white/10 hover:bg-white/5">
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="p-4 text-gray-200">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                    <td key={cell.id} className="p-4 text-gray-200">{flexRender(cell.column.columnDef.cell, cell.getContext()) as React.ReactNode}</td>
                   ))}
                 </tr>
               ))}
